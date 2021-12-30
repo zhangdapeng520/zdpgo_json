@@ -6,9 +6,10 @@ import (
 	"github.com/zhangdapeng520/zdpgo_json"
 )
 
-const json = `{"name":{"first":"dapeng","last":"zhang"},"age":47, "gender":true}`
 
 func main() {
+	const json = `{"name":{"first":"dapeng","last":"zhang"},"age":47, "gender":true}`
+
 	// 查找字符串
 	value := zdpgo_json.Get(json, "name.last")
 	println(value.String())

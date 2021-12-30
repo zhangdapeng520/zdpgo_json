@@ -14,8 +14,215 @@ import (
 	"github.com/tidwall/pretty"
 )
 
-// TestRandomData is a fuzzing test that throws random data at the Parse
-// function looking for panics.
+// 测试查询json的功能
+func TestGet(t *testing.T) {
+	const json = `{"name":{"first":"dapeng","last":"zhang"},"age":47, "gender":true}`
+
+	// 查找字符串
+	value := Get(json, "name.last")
+	println(value.String())
+
+	// 查找数字
+	age := Get(json, "age")
+	fmt.Println(age.Int())
+
+	// 查找布尔值
+	gender := Get(json, "gender")
+	fmt.Println(gender.Bool())
+}
+
+// 测试查询语法
+func TestPathSyntax(t *testing.T) {
+	const json = `{
+					"name": {"first": "Tom", "last": "Anderson"},
+					"age":37,
+					"children": ["Sara","Alex","Jack"],
+					"fav.movie": "Deer Hunter",
+					"friends": [
+						{"first": "Dale", "last": "Murphy", "age": 44, "nets": ["ig", "fb", "tw"]},
+						{"first": "Roger", "last": "Craig", "age": 68, "nets": ["fb", "tw"]},
+						{"first": "Jane", "last": "Murphy", "age": 47, "nets": ["ig", "tw"]}
+					]
+				}`
+
+	// 查找字符串
+	value := Get(json, "name.last")
+	println(value.String())
+
+	// 获取数组长度
+	arrLen := Get(json, "children.#")
+	println(arrLen.Int())
+
+	// 获取数组指定索引元素
+	arrIndex := Get(json, "children.1")
+	println(arrIndex.String())
+
+	// 模糊匹配获取数组指定索引元素
+	arrLikeIndex := Get(json, "child*.2")
+	println(arrLikeIndex.String())
+
+	// 模糊匹配获取数组指定索引元素
+	arrLikeOneIndex := Get(json, "c?ildren.0")
+	println(arrLikeOneIndex.String())
+
+	// 键本身包含小数点，使用转义字符
+	trans := Get(json, `fav\.movie`) // 注意：不要用双引号
+	println(trans.String())
+
+	// 取所有数组的指定元素
+	arrAllFrist := Get(json, "friends.#.first")
+	println(arrAllFrist.Array())
+	for _, v:= range arrAllFrist.Array(){
+		fmt.Print(v, " ")
+	}
+	fmt.Println()
+
+	// 取指定数组的指定元素
+	arrFirstFrist := Get(json, "friends.1.first")
+	println(arrFirstFrist.String())
+}
+
+
+// 测试过滤器的使用
+func TestModifierFilter(t *testing.T) {
+	const json = `{
+					"name": {"first": "Tom", "last": "Anderson"},
+					"age":37,
+					"children": ["Sara","Alex","Jack"],
+					"fav.movie": "Deer Hunter",
+					"friends": [
+						{"first": "Dale", "last": "Murphy", "age": 44, "nets": ["ig", "fb", "tw"]},
+						{"first": "Roger", "last": "Craig", "age": 68, "nets": ["fb", "tw"]},
+						{"first": "Jane", "last": "Murphy", "age": 47, "nets": ["ig", "tw"]}
+					]
+				}`
+	
+	/*
+	@reverse: Reverse an array or the members of an object.
+	@ugly: Remove all whitespace from a json document.
+	@pretty: Make the json document more human readable.
+	@this: Returns the current element. It can be used to retrieve the root element.
+	@valid: Ensure the json document is valid.
+	@flatten: Flattens an array.
+	@join: Joins multiple objects into a single object.
+	@keys: Returns an array of keys for an object.
+	@values: Returns an array of values for an object.
+	*/
+
+	// 自定义过滤器
+	AddModifier("case", func(json, arg string) string {
+		if arg == "upper" {
+			return strings.ToUpper(json)
+		}
+		if arg == "lower" {
+			return strings.ToLower(json)
+		}
+		return json
+	})
+
+	// 使用过滤器
+	value := Get(json, "children|@case:upper")
+	for _, v:= range value.Array(){
+		fmt.Print(v, " ")
+	}
+	fmt.Println()
+
+	value = Get(json, "children|@case:lower")
+	for _, v:= range value.Array(){
+		fmt.Print(v, " ")
+	}
+	fmt.Println()
+}
+
+// 测试遍历每一行数据
+
+func TestLines(t *testing.T) {
+	const json = `{"name": "Gilbert", "age": 61}
+				  {"name": "Alexa", "age": 34}
+				  {"name": "May", "age": 57}
+				  {"name": "Deloise", "age": 44}`
+	
+	// 遍历每一行json
+	ForEachLine(json, func(line Result) bool{
+		println(line.String())
+		return true
+	})
+}
+
+// 测试遍历数组
+
+func TestForeachArray(t *testing.T) {
+	const json = `{
+					"programmers": [
+						{
+						"firstName": "Janet", 
+						"lastName": "McLaughlin", 
+						}, {
+						"firstName": "Elliotte", 
+						"lastName": "Hunter", 
+						}, {
+						"firstName": "Jason", 
+						"lastName": "Harold", 
+						}
+					]
+				}`
+	
+	// 获取每一行的lastName
+	result := Get(json, "programmers.#.lastName")
+	for _, name := range result.Array() {
+		println(name.String())
+	}
+
+	// 查找lastName为Hunter的数据
+	name := Get(json, `programmers.#(lastName="Hunter").firstName`)
+	println(name.String())  
+
+	// 遍历数组
+	result = Get(json, "programmers")
+	result.ForEach(func(_, value Result) bool {
+		println(value.String()) 
+		return true // keep iterating
+	})
+}
+
+// 测试判断数据是否存在
+func TestExists(t *testing.T) {
+	const json = `{
+					"programmers": [
+						{
+						"firstName": "Janet", 
+						"lastName": "McLaughlin", 
+						}, {
+						"firstName": "Elliotte", 
+						"lastName": "Hunter", 
+						}, {
+						"firstName": "Jason", 
+						"lastName": "Harold", 
+						}
+					]
+				}`
+	
+	// 判断是否为json字符串
+	if !Valid(json)  {
+		fmt.Println("json数据格式校验失败")
+	}
+
+
+	// 判断是否存在数据
+	value := Get(json, "name.last")
+	if !value.Exists() {
+		println("no last name")
+	} else {
+		println(value.String())
+	}
+
+	// Or as one step
+	if Get(json, "name.last").Exists() {
+		println("has a last name")
+	}
+}
+
+// 测试解析随机数据
 func TestRandomData(t *testing.T) {
 	var lstr string
 	defer func() {
@@ -38,6 +245,7 @@ func TestRandomData(t *testing.T) {
 	}
 }
 
+// 测试校验随机的字符串
 func TestRandomValidStrings(t *testing.T) {
 	rand.Seed(time.Now().UnixNano())
 	b := make([]byte, 200)
@@ -63,6 +271,7 @@ func TestRandomValidStrings(t *testing.T) {
 	}
 }
 
+// 测试校验emoji标签
 func TestEmoji(t *testing.T) {
 	const input = `{"utf8":"Example emoji, KO: \ud83d\udd13, \ud83c\udfc3 ` +
 		`OK: \u2764\ufe0f "}`
@@ -74,6 +283,7 @@ func TestEmoji(t *testing.T) {
 	}
 }
 
+// 测试转换路径
 func testEscapePath(t *testing.T, json, path, expect string) {
 	if Get(json, path).String() != expect {
 		t.Fatalf("expected '%v', got '%v'", expect, Get(json, path).String())
@@ -143,6 +353,7 @@ var basicJSON = `  {"age":100, "name":{"here":"B\\\"R"},
 	"lastly":{"end...ing":"soon","yay":"final"}
 }`
 
+// 测试路径
 func TestPath(t *testing.T) {
 	json := basicJSON
 	r := Get(json, "@this")
@@ -201,11 +412,13 @@ func TestPath(t *testing.T) {
 
 }
 
+// 测试时间类型
 func TestTimeResult(t *testing.T) {
 	assert(t, Get(basicJSON, "created").String() ==
 		Get(basicJSON, "created").Time().Format(time.RFC3339Nano))
 }
 
+// 测试解析任意类型数据
 func TestParseAny(t *testing.T) {
 	assert(t, Parse("100").Float() == 100)
 	assert(t, Parse("true").Bool())

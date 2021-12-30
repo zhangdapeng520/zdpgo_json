@@ -4,6 +4,7 @@
 功能清单：
 - 与Python保持一致的API接口，dump对应Dump，load对应Load，dumps对应Dumps，loads对应Loads
 - 采用json-iterator进行json的编码和解码，效率更高
+- 整合gjson，支持json字符串的查询
 
 
 ## 一、快速入门
@@ -138,5 +139,35 @@ func PythonLoad() {
 
 func main() {
 	PythonLoad()
+}
+```
+
+## 二、高级功能
+
+### 2.1 查询json字符串
+```go
+package main
+
+import (
+	"fmt"
+
+	"github.com/zhangdapeng520/zdpgo_json"
+)
+
+
+func main() {
+	const json = `{"name":{"first":"dapeng","last":"zhang"},"age":47, "gender":true}`
+
+	// 查找字符串
+	value := zdpgo_json.Get(json, "name.last")
+	println(value.String())
+
+	// 查找数字
+	age := zdpgo_json.Get(json, "age")
+	fmt.Println(age.Int())
+
+	// 查找布尔值
+	gender := zdpgo_json.Get(json, "gender")
+	fmt.Println(gender.Bool())
 }
 ```
