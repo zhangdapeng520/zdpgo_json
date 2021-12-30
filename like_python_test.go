@@ -1,9 +1,9 @@
 package zdpgo_json
 
 import (
-	`fmt`
-	`log`
-	`testing`
+	"fmt"
+	"log"
+	"testing"
 )
 
 type Account struct {
@@ -71,7 +71,7 @@ func TestPythonLoads(t *testing.T) {
 	fmt.Println(account, account.Email, account.Money)
 }
 
-func TestMap(t *testing.T) {
+func TestMap1(t *testing.T) {
 	
 	// 处理map
 	skill := make(map[string]float64)
