@@ -1,9 +1,13 @@
 package zdpgo_json
 
 import (
-	"encoding/json"
 	"os"
+
+	jsoniter "github.com/json-iterator/go"
 )
+
+
+var json = jsoniter.ConfigCompatibleWithStandardLibrary
 
 // 模拟Python的API
 
@@ -21,14 +25,14 @@ func Loads(str string, obj interface{}) error {
 
 // 将Golang对象写入到json文件
 func Dump(filePath string, obj interface{}) error {
-
+	
 	// 创建json文件
 	filePtr, err := os.Create(filePath)
 	if err != nil {
 		return err
 	}
 	defer filePtr.Close()
-
+	
 	// 写入json数据
 	encoder := json.NewEncoder(filePtr)
 	err = encoder.Encode(obj)
@@ -37,14 +41,14 @@ func Dump(filePath string, obj interface{}) error {
 
 // 将json文件读取并转换为Golang对象
 func Load(filePath string, obj interface{}) error {
-
+	
 	// 打开json文件
 	filePtr, err := os.Open(filePath)
 	if err != nil {
 		return err
 	}
 	defer filePtr.Close()
-
+	
 	// 读取json文件
 	decoder := json.NewDecoder(filePtr)
 	err = decoder.Decode(obj)

@@ -3,6 +3,7 @@
 
 功能清单：
 - 与Python保持一致的API接口，dump对应Dump，load对应Load，dumps对应Dumps，loads对应Loads
+- 采用json-iterator进行json的编码和解码，效率更高
 
 
 ## 一、快速入门
