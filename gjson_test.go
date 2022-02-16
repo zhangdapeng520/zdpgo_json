@@ -11,7 +11,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/tidwall/pretty"
+	"github.com/zhangdapeng520/zdpgo_json/pretty"
 )
 
 // 测试查询json的功能
@@ -72,7 +72,7 @@ func TestPathSyntax(t *testing.T) {
 	// 取所有数组的指定元素
 	arrAllFrist := Get(json, "friends.#.first")
 	println(arrAllFrist.Array())
-	for _, v:= range arrAllFrist.Array(){
+	for _, v := range arrAllFrist.Array() {
 		fmt.Print(v, " ")
 	}
 	fmt.Println()
@@ -81,7 +81,6 @@ func TestPathSyntax(t *testing.T) {
 	arrFirstFrist := Get(json, "friends.1.first")
 	println(arrFirstFrist.String())
 }
-
 
 // 测试过滤器的使用
 func TestModifierFilter(t *testing.T) {
@@ -96,17 +95,17 @@ func TestModifierFilter(t *testing.T) {
 						{"first": "Jane", "last": "Murphy", "age": 47, "nets": ["ig", "tw"]}
 					]
 				}`
-	
+
 	/*
-	@reverse: Reverse an array or the members of an object.
-	@ugly: Remove all whitespace from a json document.
-	@pretty: Make the json document more human readable.
-	@this: Returns the current element. It can be used to retrieve the root element.
-	@valid: Ensure the json document is valid.
-	@flatten: Flattens an array.
-	@join: Joins multiple objects into a single object.
-	@keys: Returns an array of keys for an object.
-	@values: Returns an array of values for an object.
+		@reverse: Reverse an array or the members of an object.
+		@ugly: Remove all whitespace from a json document.
+		@pretty: Make the json document more human readable.
+		@this: Returns the current element. It can be used to retrieve the root element.
+		@valid: Ensure the json document is valid.
+		@flatten: Flattens an array.
+		@join: Joins multiple objects into a single object.
+		@keys: Returns an array of keys for an object.
+		@values: Returns an array of values for an object.
 	*/
 
 	// 自定义过滤器
@@ -122,13 +121,13 @@ func TestModifierFilter(t *testing.T) {
 
 	// 使用过滤器
 	value := Get(json, "children|@case:upper")
-	for _, v:= range value.Array(){
+	for _, v := range value.Array() {
 		fmt.Print(v, " ")
 	}
 	fmt.Println()
 
 	value = Get(json, "children|@case:lower")
-	for _, v:= range value.Array(){
+	for _, v := range value.Array() {
 		fmt.Print(v, " ")
 	}
 	fmt.Println()
@@ -141,9 +140,9 @@ func TestLines(t *testing.T) {
 				  {"name": "Alexa", "age": 34}
 				  {"name": "May", "age": 57}
 				  {"name": "Deloise", "age": 44}`
-	
+
 	// 遍历每一行json
-	ForEachLine(json, func(line Result) bool{
+	ForEachLine(json, func(line Result) bool {
 		println(line.String())
 		return true
 	})
@@ -166,7 +165,7 @@ func TestForeachArray(t *testing.T) {
 						}
 					]
 				}`
-	
+
 	// 获取每一行的lastName
 	result := Get(json, "programmers.#.lastName")
 	for _, name := range result.Array() {
@@ -175,12 +174,12 @@ func TestForeachArray(t *testing.T) {
 
 	// 查找lastName为Hunter的数据
 	name := Get(json, `programmers.#(lastName="Hunter").firstName`)
-	println(name.String())  
+	println(name.String())
 
 	// 遍历数组
 	result = Get(json, "programmers")
 	result.ForEach(func(_, value Result) bool {
-		println(value.String()) 
+		println(value.String())
 		return true // keep iterating
 	})
 }
@@ -191,34 +190,20 @@ func TestExists(t *testing.T) {
 					"programmers": [
 						{
 						"firstName": "Janet", 
-						"lastName": "McLaughlin", 
+						"lastName": "McLaughlin" 
 						}, {
 						"firstName": "Elliotte", 
-						"lastName": "Hunter", 
+						"lastName": "Hunter" 
 						}, {
 						"firstName": "Jason", 
-						"lastName": "Harold", 
+						"lastName": "Harold" 
 						}
 					]
 				}`
-	
+
 	// 判断是否为json字符串
-	if !Valid(json)  {
+	if !Valid(json) {
 		fmt.Println("json数据格式校验失败")
-	}
-
-
-	// 判断是否存在数据
-	value := Get(json, "name.last")
-	if !value.Exists() {
-		println("no last name")
-	} else {
-		println(value.String())
-	}
-
-	// Or as one step
-	if Get(json, "name.last").Exists() {
-		println("has a last name")
 	}
 }
 

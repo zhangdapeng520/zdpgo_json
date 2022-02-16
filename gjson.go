@@ -9,8 +9,8 @@ import (
 	"unicode/utf8"
 	"unsafe"
 
-	"github.com/tidwall/match"
-	"github.com/tidwall/pretty"
+	"github.com/zhangdapeng520/zdpgo_json/match"
+	"github.com/zhangdapeng520/zdpgo_json/pretty"
 )
 
 // Type is Result type
