@@ -1,50 +1,51 @@
 package zdpgo_json
 
 import (
+	"encoding/json"
 	"fmt"
 	"log"
 	"testing"
 )
 
-type Account struct {
+type account struct {
 	Email    string  `json:"email"`
 	password string  `json:"password"` // 不会处理私有变量
 	Money    float64 `json:"money"`
 }
 
-type User struct {
+type user struct {
 	Name    string
 	Age     int
 	Roles   []string
 	Skill   map[string]float64
-	Account Account
+	account account
 }
 
 // 使用Golang的Marshal方法
 func TestGoMarshal(t *testing.T) {
-	account := Account{
+	a := account{
 		Email:    "张大鹏",
 		password: "123456",
 		Money:    100.5,
 	}
-	
-	rs, err := json.Marshal(account)
+
+	rs, err := json.Marshal(a)
 	if err != nil {
 		log.Fatalln(err)
 	}
-	
+
 	fmt.Println(rs)
 	fmt.Println(string(rs))
 }
 
 // 使用类似Python的dumps方法
 func TestPythonDumps(t *testing.T) {
-	account := Account{
+	a := account{
 		Email:    "张大鹏",
 		password: "123456",
 		Money:    100.5,
 	}
-	result, _ := Dumps(account)
+	result, _ := Dumps(a)
 	fmt.Println(result)
 }
 
@@ -64,28 +65,28 @@ func TestPythonLoads(t *testing.T) {
 	var dat map[string]interface{}
 	_ = Loads(str, &dat)
 	fmt.Println(dat)
-	
+
 	s := `{"email":"张大鹏","money":100.5}`
-	var account Account
-	_ = Loads(s, &account)
-	fmt.Println(account, account.Email, account.Money)
+	var a account
+	_ = Loads(s, &a)
+	fmt.Println(a, a.Email, a.Money)
 }
 
 func TestMap1(t *testing.T) {
-	
+
 	// 处理map
 	skill := make(map[string]float64)
 	skill["python"] = 99.5
 	skill["elixir"] = 90
 	skill["ruby"] = 80.0
-	
-	user := User{
-		Name:  "rsj217",
+
+	user := user{
+		Name:  "张大鹏",
 		Age:   27,
 		Roles: []string{"Owner", "Master"}, // 处理切片
 		Skill: skill,
 	}
-	
+
 	rs, err := Dumps(user)
 	if err != nil {
 		log.Fatalln(err)
@@ -94,35 +95,35 @@ func TestMap1(t *testing.T) {
 }
 
 func TestPythonDump(t *testing.T) {
-	account := Account{
+	a := account{
 		Email:    "张大鹏",
 		password: "123456",
 		Money:    100.5,
 	}
-	
+
 	// 处理map
 	skill := make(map[string]float64)
 	skill["python"] = 99.5
 	skill["elixir"] = 90
 	skill["ruby"] = 80.0
-	
-	user := User{
-		Name:    "rsj217",
+
+	u := user{
+		Name:    "张大鹏",
 		Age:     27,
 		Roles:   []string{"Owner", "Master"},
 		Skill:   skill,
-		Account: account,
+		account: a,
 	}
-	
+
 	// 写json文件
 	// 创建文件
 	filePath := "user.json"
-	_ = Dump(filePath, user)
+	_ = Dump(filePath, u)
 }
 
 func TestPythonLoad(t *testing.T) {
 	filePath := "user.json"
-	var user User
-	_ = Load(filePath, &user)
-	fmt.Println(user)
+	var u user
+	_ = Load(filePath, &u)
+	fmt.Println(u)
 }

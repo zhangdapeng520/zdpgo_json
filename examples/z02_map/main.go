@@ -22,7 +22,7 @@ func main() {
 	skill["ruby"] = 80.0
 
 	user := User{
-		Name:  "rsj217",
+		Name:  "张大鹏",
 		Age:   27,
 		Roles: []string{"Owner", "Master"}, // 处理切片
 		Skill: skill,

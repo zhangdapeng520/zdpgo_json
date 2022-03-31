@@ -3,6 +3,7 @@ package zdpgo_json
 import (
 	"bytes"
 	"encoding/hex"
+	"encoding/json"
 	"fmt"
 	"math"
 	"math/rand"
@@ -11,7 +12,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/zhangdapeng520/zdpgo_json/pretty"
+	"github.com/zhangdapeng520/zdpgo_json/libs/pretty"
 )
 
 // 测试查询json的功能
@@ -134,7 +135,6 @@ func TestModifierFilter(t *testing.T) {
 }
 
 // 测试遍历每一行数据
-
 func TestLines(t *testing.T) {
 	const json = `{"name": "Gilbert", "age": 61}
 				  {"name": "Alexa", "age": 34}
@@ -149,7 +149,6 @@ func TestLines(t *testing.T) {
 }
 
 // 测试遍历数组
-
 func TestForeachArray(t *testing.T) {
 	const json = `{
 					"programmers": [

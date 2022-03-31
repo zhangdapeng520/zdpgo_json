@@ -14,7 +14,7 @@ type Account struct {
 	Money    float64 `json:"money"`
 }
 
-// 使用Golang的Marshal方法
+// GoMarshal 使用Golang的Marshal方法
 func GoMarshal() {
 	account := Account{
 		Email:    "张大鹏",
@@ -31,7 +31,7 @@ func GoMarshal() {
 	fmt.Println(string(rs))
 }
 
-// 使用类似Python的dumps方法
+// PythonDumps 使用类似Python的dumps方法
 func PythonDumps() {
 	account := Account{
 		Email:    "张大鹏",

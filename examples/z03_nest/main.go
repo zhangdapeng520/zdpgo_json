@@ -34,13 +34,14 @@ func main() {
 	skill["ruby"] = 80.0
 
 	user := User{
-		Name:    "rsj217",
+		Name:    "张大鹏",
 		Age:     27,
 		Roles:   []string{"Owner", "Master"},
 		Skill:   skill,
-		Account: account,
+		Account: account, // 处理嵌套的数据结构
 	}
 
+	// 解析JSON
 	rs, err := json.Marshal(user)
 	if err != nil {
 		log.Fatalln(err)

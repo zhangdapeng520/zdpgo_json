@@ -10,6 +10,7 @@
 
 ## 版本历史
 - 版本0.1.0 2022年2月16日 基本功能
+- 版本0.1.1 2022年3月30日 读取配置
 
 ## 一、快速入门
 
@@ -94,7 +95,7 @@ func PythonDump() {
 	skill["ruby"] = 80.0
 	
 	user := User{
-		Name:    "rsj217",
+		Name:    "张大鹏",
 		Age:     27,
 		Roles:   []string{"Owner", "Master"},
 		Skill:   skill,
@@ -173,5 +174,29 @@ func main() {
 	// 查找布尔值
 	gender := zdpgo_json.Get(json, "gender")
 	fmt.Println(gender.Bool())
+}
+```
+
+### 读取json配置
+```go
+package main
+
+import (
+	"fmt"
+	"github.com/zhangdapeng520/zdpgo_json"
+)
+
+type conf struct {
+	Username string `json:"username"`
+	Password string `json:"password"`
+	Host     string `json:"host"`
+	Port     int    `json:"port"`
+	Db       string `json:"db"`
+}
+
+func main() {
+	var c conf
+	_ = zdpgo_json.ReadDefaultConfig(&c)
+	fmt.Println("读取配置：", c.Username, c.Password, c.Host, c.Port, c.Db)
 }
 ```

@@ -2,6 +2,7 @@
 package zdpgo_json
 
 import (
+	"encoding/json"
 	"strconv"
 	"strings"
 	"time"
@@ -9,8 +10,8 @@ import (
 	"unicode/utf8"
 	"unsafe"
 
-	"github.com/zhangdapeng520/zdpgo_json/match"
-	"github.com/zhangdapeng520/zdpgo_json/pretty"
+	"github.com/zhangdapeng520/zdpgo_json/libs/match"
+	"github.com/zhangdapeng520/zdpgo_json/libs/pretty"
 )
 
 // Type is Result type
