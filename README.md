@@ -10,171 +10,118 @@
 ## 版本历史
 - 版本0.1.0 2022年2月16日 基本功能
 - 版本0.1.1 2022年3月30日 读取配置
+- 版本0.1.2 2022年4月2日 项目结构优化
 
 ## 使用示例
 
-### 读写json字符串
+### 读写json文件
 ```go
 package main
 
 import (
-	`fmt`
-	
-	`github.com/zhangdapeng520/zdpgo_json`
+	"fmt"
+	"github.com/zhangdapeng520/zdpgo_json"
 )
 
-type Account struct {
+type account struct {
 	Email    string  `json:"email"`
 	password string  `json:"password"` // 不会处理私有变量
 	Money    float64 `json:"money"`
 }
 
-// 使用类似Python的dumps方法
-func PythonDumps() {
-	account := Account{
-		Email:    "张大鹏",
-		password: "123456",
-		Money:    100.5,
-	}
-	result, _ := zdpgo_json.Dumps(account)
-	fmt.Println(result)
-}
-
-func PythonLoads() {
-	str := "{\"access_token\":\"uAUS6o5g-9rFWjYt39LYa7TKqiMVsIfCGPEN4IZzdAk5-T-ryVhL7xb8kYciuU_m\",\"expires_in\":7200}"
-	var dat map[string]interface{}
-	_ = zdpgo_json.Loads(str, &dat)
-	fmt.Println(dat)
-	
-	s := `{"email":"张大鹏","money":100.5}`
-	var account Account
-	_ = zdpgo_json.Loads(s, &account)
-	fmt.Println(account, account.Email, account.Money)
-}
-
-func main() {
-	PythonDumps()
-	PythonLoads()
-}
-```
-
-### 写入json文件
-```go
-package main
-
-import (
-	`github.com/zhangdapeng520/zdpgo_json`
-)
-
-type Account struct {
-	Email    string  `json:"email"`
-	password string  `json:"password"` // 不会处理私有变量
-	Money    float64 `json:"money"`
-}
-
-type User struct {
+type user struct {
 	Name    string
 	Age     int
 	Roles   []string
 	Skill   map[string]float64
-	Account Account
+	Account account
 }
 
-func PythonDump() {
-	account := Account{
+func main() {
+	a := account{
 		Email:    "张大鹏",
 		password: "123456",
 		Money:    100.5,
 	}
-	
-	// 处理map
-	skill := make(map[string]float64)
-	skill["python"] = 99.5
-	skill["elixir"] = 90
-	skill["ruby"] = 80.0
-	
-	user := User{
+	u := user{
 		Name:    "张大鹏",
 		Age:     27,
-		Roles:   []string{"Owner", "Master"},
-		Skill:   skill,
-		Account: account,
+		Roles:   []string{"Owner", "Master"}, // 处理切片
+		Account: a,
 	}
-	
-	// 写json文件
-	// 创建文件
-	filePath := "./examples/z04_write_json/user1.json"
-	_ = zdpgo_json.Dump(filePath, user)
-}
-func main() {
-	PythonDump()
+
+	j := zdpgo_json.New()
+
+	// 写入文件
+	err := j.Dump("user.json", u)
+	if err != nil {
+		fmt.Println(err)
+	}
+
+	// 读取文件
+	err = j.Load("user.json", &u)
+	if err != nil {
+		fmt.Println(err)
+	}
+	fmt.Println(u)
 }
 ```
 
-### 读取json文件
+### 序列化和反序列化
 ```go
 package main
 
 import (
-	`fmt`
-	`github.com/zhangdapeng520/zdpgo_json`
+	"fmt"
+	"github.com/zhangdapeng520/zdpgo_json"
 )
 
-type Account struct {
+type account struct {
 	Email    string  `json:"email"`
 	password string  `json:"password"` // 不会处理私有变量
 	Money    float64 `json:"money"`
 }
 
-type User struct {
+type user struct {
 	Name    string
 	Age     int
 	Roles   []string
 	Skill   map[string]float64
-	Account Account
-}
-
-func PythonLoad() {
-	filePath := "./examples/z05_read_json/user.json"
-	var user User
-	_ = zdpgo_json.Load(filePath, &user)
-	fmt.Println(user)
+	Account account
 }
 
 func main() {
-	PythonLoad()
+	a := account{
+		Email:    "张大鹏",
+		password: "123456",
+		Money:    100.5,
+	}
+	u := user{
+		Name:    "张大鹏",
+		Age:     27,
+		Roles:   []string{"Owner", "Master"}, // 处理切片
+		Account: a,
+	}
+
+	j := zdpgo_json.New()
+
+	// 序列化
+	jsonData, err := j.Dumps(u)
+	if err != nil {
+		fmt.Println(err)
+	}
+	fmt.Println(jsonData)
+
+	// 反序列化
+	err = j.Loads(jsonData, &u)
+	if err != nil {
+		fmt.Println(err)
+	}
+	fmt.Println(u)
 }
 ```
 
-### 查询json字符串
-```go
-package main
-
-import (
-	"fmt"
-
-	"github.com/zhangdapeng520/zdpgo_json"
-)
-
-
-func main() {
-	const json = `{"name":{"first":"dapeng","last":"zhang"},"age":47, "gender":true}`
-
-	// 查找字符串
-	value := zdpgo_json.Get(json, "name.last")
-	println(value.String())
-
-	// 查找数字
-	age := zdpgo_json.Get(json, "age")
-	fmt.Println(age.Int())
-
-	// 查找布尔值
-	gender := zdpgo_json.Get(json, "gender")
-	fmt.Println(gender.Bool())
-}
-```
-
-### 读取json配置
+### 从json字符串中查询数据
 ```go
 package main
 
@@ -183,17 +130,44 @@ import (
 	"github.com/zhangdapeng520/zdpgo_json"
 )
 
-type conf struct {
-	Username string `json:"username"`
-	Password string `json:"password"`
-	Host     string `json:"host"`
-	Port     int    `json:"port"`
-	Db       string `json:"db"`
+type account struct {
+	Email    string  `json:"email"`
+	password string  `json:"password"` // 不会处理私有变量
+	Money    float64 `json:"money"`
+}
+
+type user struct {
+	Name    string
+	Age     int
+	Roles   []string
+	Skill   map[string]float64
+	Account account
 }
 
 func main() {
-	var c conf
-	_ = zdpgo_json.ReadDefaultConfig(&c)
-	fmt.Println("读取配置：", c.Username, c.Password, c.Host, c.Port, c.Db)
+	a := account{
+		Email:    "张大鹏",
+		password: "123456",
+		Money:    100.5,
+	}
+	u := user{
+		Name:    "张大鹏",
+		Age:     27,
+		Roles:   []string{"Owner", "Master"}, // 处理切片
+		Account: a,
+	}
+
+	j := zdpgo_json.New()
+
+	// 序列化
+	jsonData, err := j.Dumps(u)
+	if err != nil {
+		fmt.Println(err)
+	}
+	fmt.Println(jsonData)
+
+	// Get查询
+	money := j.Query.Get(jsonData, "Account.money")
+	fmt.Println("Get查询:", money, money.Float())
 }
 ```

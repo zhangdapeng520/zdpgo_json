@@ -1,11 +1,9 @@
-// Package query provides searching for json strings.
 package query
 
 import (
 	"encoding/json"
 	"strconv"
 	"strings"
-	"time"
 	"unicode/utf16"
 	"unicode/utf8"
 	"unsafe"
@@ -14,301 +12,22 @@ import (
 	"github.com/zhangdapeng520/zdpgo_json/libs/pretty"
 )
 
-// Type is Result type
-type Type int
-
-const (
-	// Null is a null json value
-	Null Type = iota
-	// False is a json false boolean
-	False
-	// Number is json number
-	Number
-	// String is a json string
-	String
-	// True is a json true boolean
-	True
-	// JSON is a raw block of JSON
-	JSON
-)
-
-// String returns a string representation of the type.
-func (t Type) String() string {
-	switch t {
-	default:
-		return ""
-	case Null:
-		return "Null"
-	case False:
-		return "False"
-	case Number:
-		return "Number"
-	case String:
-		return "String"
-	case True:
-		return "True"
-	case JSON:
-		return "JSON"
-	}
+// Query 查询核心对象
+type Query struct {
+	// Get 根据路径从json字符串中查询数据
+	Get func(json, path string) Result
 }
 
-// Result represents a json value that is returned from Get().
-type Result struct {
-	// Type is the json type
-	Type Type
-	// Raw is the raw json
-	Raw string
-	// Str is the json string
-	Str string
-	// Num is the json number
-	Num float64
-	// Index of raw value in original json, zero means index unknown
-	Index int
-	// Indexes of all the elements that match on a path containing the '#'
-	// query character.
-	Indexes []int
+func NewQuery() *Query {
+	q := Query{}
+
+	// 实例化方法
+	q.Get = Get
+
+	return &q
 }
 
-// String returns a string representation of the value.
-func (t Result) String() string {
-	switch t.Type {
-	default:
-		return ""
-	case False:
-		return "false"
-	case Number:
-		if len(t.Raw) == 0 {
-			// calculated result
-			return strconv.FormatFloat(t.Num, 'f', -1, 64)
-		}
-		var i int
-		if t.Raw[0] == '-' {
-			i++
-		}
-		for ; i < len(t.Raw); i++ {
-			if t.Raw[i] < '0' || t.Raw[i] > '9' {
-				return strconv.FormatFloat(t.Num, 'f', -1, 64)
-			}
-		}
-		return t.Raw
-	case String:
-		return t.Str
-	case JSON:
-		return t.Raw
-	case True:
-		return "true"
-	}
-}
-
-// Bool returns an boolean representation.
-func (t Result) Bool() bool {
-	switch t.Type {
-	default:
-		return false
-	case True:
-		return true
-	case String:
-		b, _ := strconv.ParseBool(strings.ToLower(t.Str))
-		return b
-	case Number:
-		return t.Num != 0
-	}
-}
-
-// Int returns an integer representation.
-func (t Result) Int() int64 {
-	switch t.Type {
-	default:
-		return 0
-	case True:
-		return 1
-	case String:
-		n, _ := parseInt(t.Str)
-		return n
-	case Number:
-		// try to directly convert the float64 to int64
-		i, ok := safeInt(t.Num)
-		if ok {
-			return i
-		}
-		// now try to parse the raw string
-		i, ok = parseInt(t.Raw)
-		if ok {
-			return i
-		}
-		// fallback to a standard conversion
-		return int64(t.Num)
-	}
-}
-
-// Uint returns an unsigned integer representation.
-func (t Result) Uint() uint64 {
-	switch t.Type {
-	default:
-		return 0
-	case True:
-		return 1
-	case String:
-		n, _ := parseUint(t.Str)
-		return n
-	case Number:
-		// try to directly convert the float64 to uint64
-		i, ok := safeInt(t.Num)
-		if ok && i >= 0 {
-			return uint64(i)
-		}
-		// now try to parse the raw string
-		u, ok := parseUint(t.Raw)
-		if ok {
-			return u
-		}
-		// fallback to a standard conversion
-		return uint64(t.Num)
-	}
-}
-
-// Float returns an float64 representation.
-func (t Result) Float() float64 {
-	switch t.Type {
-	default:
-		return 0
-	case True:
-		return 1
-	case String:
-		n, _ := strconv.ParseFloat(t.Str, 64)
-		return n
-	case Number:
-		return t.Num
-	}
-}
-
-// Time returns a time.Time representation.
-func (t Result) Time() time.Time {
-	res, _ := time.Parse(time.RFC3339, t.String())
-	return res
-}
-
-// Array returns back an array of values.
-// If the result represents a null value or is non-existent, then an empty
-// array will be returned.
-// If the result is not a JSON array, the return value will be an
-// array containing one result.
-func (t Result) Array() []Result {
-	if t.Type == Null {
-		return []Result{}
-	}
-	if !t.IsArray() {
-		return []Result{t}
-	}
-	r := t.arrayOrMap('[', false)
-	return r.a
-}
-
-// IsObject returns true if the result value is a JSON object.
-func (t Result) IsObject() bool {
-	return t.Type == JSON && len(t.Raw) > 0 && t.Raw[0] == '{'
-}
-
-// IsArray returns true if the result value is a JSON array.
-func (t Result) IsArray() bool {
-	return t.Type == JSON && len(t.Raw) > 0 && t.Raw[0] == '['
-}
-
-// ForEach iterates through values.
-// If the result represents a non-existent value, then no values will be
-// iterated. If the result is an Object, the iterator will pass the key and
-// value of each item. If the result is an Array, the iterator will only pass
-// the value of each item. If the result is not a JSON array or object, the
-// iterator will pass back one value equal to the result.
-func (t Result) ForEach(iterator func(key, value Result) bool) {
-	if !t.Exists() {
-		return
-	}
-	if t.Type != JSON {
-		iterator(Result{}, t)
-		return
-	}
-	json := t.Raw
-	var obj bool
-	var i int
-	var key, value Result
-	for ; i < len(json); i++ {
-		if json[i] == '{' {
-			i++
-			key.Type = String
-			obj = true
-			break
-		} else if json[i] == '[' {
-			i++
-			key.Type = Number
-			key.Num = -1
-			break
-		}
-		if json[i] > ' ' {
-			return
-		}
-	}
-	var str string
-	var vesc bool
-	var ok bool
-	var idx int
-	for ; i < len(json); i++ {
-		if obj {
-			if json[i] != '"' {
-				continue
-			}
-			s := i
-			i, str, vesc, ok = parseString(json, i+1)
-			if !ok {
-				return
-			}
-			if vesc {
-				key.Str = unescape(str[1 : len(str)-1])
-			} else {
-				key.Str = str[1 : len(str)-1]
-			}
-			key.Raw = str
-			key.Index = s + t.Index
-		} else {
-			key.Num += 1
-		}
-		for ; i < len(json); i++ {
-			if json[i] <= ' ' || json[i] == ',' || json[i] == ':' {
-				continue
-			}
-			break
-		}
-		s := i
-		i, value, ok = parseAny(json, i, true)
-		if !ok {
-			return
-		}
-		if t.Indexes != nil {
-			if idx < len(t.Indexes) {
-				value.Index = t.Indexes[idx]
-			}
-		} else {
-			value.Index = s + t.Index
-		}
-		if !iterator(key, value) {
-			return
-		}
-		idx++
-	}
-}
-
-// Map returns back a map of values. The result should be a JSON object.
-// If the result is not a JSON object, the return value will be an empty map.
-func (t Result) Map() map[string]Result {
-	if t.Type != JSON {
-		return map[string]Result{}
-	}
-	r := t.arrayOrMap('{', false)
-	return r.o
-}
-
-// Get searches result for the specified path.
-// The result should be a JSON array or object.
+// Get 查询指定路径的结果。结果应该是一个JSON数组或对象。
 func (t Result) Get(path string) Result {
 	r := Get(t.Raw, path)
 	if r.Indexes != nil {
@@ -451,12 +170,10 @@ end:
 	return
 }
 
-// Parse parses the json and returns a result.
-//
-// This function expects that the json is well-formed, and does not validate.
-// Invalid json will not panic, but it may return back unexpected results.
-// If you are consuming JSON from an unpredictable source then you may want to
-// use the Valid function first.
+// Parse 解析json并返回一个结果。
+// 这个函数期望json是格式良好的，并且不进行验证。
+// 无效的json将不会异常，但它可能返回意想不到的结果。
+// 如果您使用的JSON来自一个不可预测的来源，那么您可能希望首先使用Valid函数。
 func Parse(json string) Result {
 	var value Result
 	i := 0
@@ -504,8 +221,7 @@ func Parse(json string) Result {
 	return value
 }
 
-// ParseBytes parses the json and returns a result.
-// If working with bytes, this method preferred over Parse(string(data))
+// ParseBytes 解析json并返回一个结果。如果使用字节，此方法优于Parse(string(data))
 func ParseBytes(json []byte) Result {
 	return Parse(string(json))
 }
@@ -637,49 +353,6 @@ func tostr(json string) (raw string, str string) {
 		}
 	}
 	return json, json[1:]
-}
-
-// Exists returns true if value exists.
-//
-//  if query.Get(json, "name.last").Exists(){
-//		println("value exists")
-//  }
-func (t Result) Exists() bool {
-	return t.Type != Null || len(t.Raw) != 0
-}
-
-// Value returns one of these types:
-//
-//	bool, for JSON booleans
-//	float64, for JSON numbers
-//	Number, for JSON numbers
-//	string, for JSON string literals
-//	nil, for JSON null
-//	map[string]interface{}, for JSON objects
-//	[]interface{}, for JSON arrays
-//
-func (t Result) Value() interface{} {
-	if t.Type == String {
-		return t.Str
-	}
-	switch t.Type {
-	default:
-		return nil
-	case False:
-		return false
-	case Number:
-		return t.Num
-	case JSON:
-		r := t.arrayOrMap(0, true)
-		if r.vc == '{' {
-			return r.oi
-		} else if r.vc == '[' {
-			return r.ai
-		}
-		return nil
-	case True:
-		return true
-	}
 }
 
 func parseString(json string, i int) (int, string, bool, bool) {
@@ -821,7 +494,7 @@ func parseArrayPath(path string) (r arrayPathResult) {
 	return
 }
 
-// splitQuery takes a query and splits it into three parts:
+// splitQuery接受一个查询并将其拆分为三个部分:
 //   path, op, middle, and right.
 // So for this query:
 //   #(first_name=="Murphy").last
@@ -1705,9 +1378,7 @@ func splitPossiblePipe(path string) (left, right string, ok bool) {
 	return
 }
 
-// ForEachLine iterates through lines of JSON as specified by the JSON Lines
-// format (http://jsonlines.org/).
-// Each line is returned as a GJSON Result.
+// ForEachLine 通过JSON lines指定的JSON行进行迭代
 func ForEachLine(json string, iterator func(line Result) bool) {
 	var res Result
 	var i int
@@ -1841,39 +1512,9 @@ type parseContext struct {
 	lines bool
 }
 
-// Get searches json for the specified path.
-// A path is in dot syntax, such as "name.last" or "age".
-// When the value is found it's returned immediately.
-//
-// A path is a series of keys separated by a dot.
-// A key may contain special wildcard characters '*' and '?'.
-// To access an array value use the index as the key.
-// To get the number of elements in an array or to access a child path, use
-// the '#' character.
-// The dot and wildcard character can be escaped with '\'.
-//
-//  {
-//    "name": {"first": "Tom", "last": "Anderson"},
-//    "age":37,
-//    "children": ["Sara","Alex","Jack"],
-//    "friends": [
-//      {"first": "James", "last": "Murphy"},
-//      {"first": "Roger", "last": "Craig"}
-//    ]
-//  }
-//  "name.last"          >> "Anderson"
-//  "age"                >> 37
-//  "children"           >> ["Sara","Alex","Jack"]
-//  "children.#"         >> 3
-//  "children.1"         >> "Alex"
-//  "child*.2"           >> "Jack"
-//  "c?ildren.0"         >> "Sara"
-//  "friends.#.first"    >> ["James","Roger"]
-//
-// This function expects that the json is well-formed, and does not validate.
-// Invalid json will not panic, but it may return back unexpected results.
-// If you are consuming JSON from an unpredictable source then you may want to
-// use the Valid function first.
+// Get 在json中搜索指定路径。
+// 路径使用.分割，比如："name.last" 或 "age"
+// 当找到值时，它会立即返回。
 func Get(json, path string) Result {
 	if len(path) > 1 {
 		if (path[0] == '@' && !DisableModifiers) || path[0] == '!' {
@@ -1985,8 +1626,8 @@ func Get(json, path string) Result {
 	return c.value
 }
 
-// GetBytes searches json for the specified path.
-// If working with bytes, this method preferred over Get(string(data), path)
+// GetBytes 在json中搜索指定路径。
+// 如果使用字节，此方法优于Get(string(data)， path)
 func GetBytes(json []byte, path string) Result {
 	return getBytes(json, path)
 }
@@ -2056,12 +1697,9 @@ func unescape(json string) string {
 	return string(str)
 }
 
-// Less return true if a token is less than another token.
-// The caseSensitive paramater is used when the tokens are Strings.
-// The order when comparing two different type is:
-//
+// Less 如果一个令牌小于另一个令牌，则返回true。
+// 当令牌为string时，使用caseSensitive参数。比较两种不同类型时的顺序为:
 //  Null < False < Number < String < True < JSON
-//
 func (t Result) Less(token Result, caseSensitive bool) bool {
 	if t.Type < token.Type {
 		return true
@@ -2196,9 +1834,8 @@ func parseAny(json string, i int, hit bool) (int, Result, bool) {
 	return i, res, false
 }
 
-// GetMany searches json for the multiple paths.
-// The return value is a Result array where the number of items
-// will be equal to the number of input paths.
+// GetMany 在json中搜索多个路径。
+// 返回值是一个Result数组，其中项的数量将等于输入路径的数量。
 func GetMany(json string, path ...string) []Result {
 	res := make([]Result, len(path))
 	for i, path := range path {
@@ -2207,9 +1844,8 @@ func GetMany(json string, path ...string) []Result {
 	return res
 }
 
-// GetManyBytes searches json for the multiple paths.
-// The return value is a Result array where the number of items
-// will be equal to the number of input paths.
+// GetManyBytes 在json中搜索多个路径
+// 返回值是一个Result数组，其中项的数量将等于输入路径的数量。
 func GetManyBytes(json []byte, path ...string) []Result {
 	res := make([]Result, len(path))
 	for i, path := range path {
@@ -2488,27 +2124,13 @@ func validnull(data []byte, i int) (outi int, ok bool) {
 	return i, false
 }
 
-// Valid returns true if the input is valid json.
-//
-//  if !query.Valid(json) {
-//  	return errors.New("invalid json")
-//  }
-//  value := query.Get(json, "name.last")
-//
+// Valid 如果输入的json是有效的，返回true。
 func Valid(json string) bool {
 	_, ok := validpayload(stringBytes(json), 0)
 	return ok
 }
 
-// ValidBytes returns true if the input is valid json.
-//
-//  if !query.Valid(json) {
-//  	return errors.New("invalid json")
-//  }
-//  value := query.Get(json, "name.last")
-//
-// If working with bytes, this method preferred over ValidBytes(string(data))
-//
+// ValidBytes 如果输入的json是有效的，返回true。
 func ValidBytes(json []byte) bool {
 	_, ok := validpayload(json, 0)
 	return ok
@@ -2552,8 +2174,7 @@ func parseInt(s string) (n int64, ok bool) {
 	return n, true
 }
 
-// safeInt validates a given JSON number
-// ensures it lies within the minimum and maximum representable JSON numbers
+// safeInt 验证给定的JSON编号，确保它位于最小和最大可表示的JSON编号内
 func safeInt(f float64) (n int64, ok bool) {
 	// https://tc39.es/ecma262/#sec-number.min_safe_integer
 	// https://tc39.es/ecma262/#sec-number.max_safe_integer
@@ -2671,14 +2292,13 @@ var modifiers = map[string]func(json, arg string) string{
 	"values":  modValues,
 }
 
-// AddModifier binds a custom modifier command to the GJSON syntax.
-// This operation is not thread safe and should be executed prior to
-// using all other query function.
+// AddModifier 将一个自定义修饰符命令绑定到GJSON语法。
+// 这个操作不是线程安全的，应该在使用所有其他查询函数之前执行。
 func AddModifier(name string, fn func(json, arg string) string) {
 	modifiers[name] = fn
 }
 
-// ModifierExists returns true when the specified modifier exists.
+// ModifierExists 当指定的修饰符存在时返回true。
 func ModifierExists(name string, fn func(json, arg string) string) bool {
 	_, ok := modifiers[name]
 	return ok
