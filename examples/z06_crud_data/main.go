@@ -2,9 +2,8 @@ package main
 
 import (
 	"fmt"
+	"github.com/zhangdapeng520/zdpgo_json/core/python"
 	"sync"
-
-	"github.com/zhangdapeng520/zdpgo_json"
 )
 
 // ConfigST 配置对象
@@ -44,7 +43,7 @@ type viewer struct {
 func main() {
 	filePath := "examples\\z06_crud_data\\config.json"
 	var data ConfigST
-	_ = zdpgo_json.Load(filePath, &data)
+	_ = python.Load(filePath, &data)
 	fmt.Println(data.Streams)
 
 	// 添加
@@ -55,10 +54,10 @@ func main() {
 	data.Streams["test1"] = newStream
 
 	// 重新写入
-	_ = zdpgo_json.Dump(filePath, data)
+	_ = python.Dump(filePath, data)
 
 	// 删除
 	delete(data.Streams, "test1")
 	// 重新写入
-	_ = zdpgo_json.Dump(filePath, data)
+	_ = python.Dump(filePath, data)
 }

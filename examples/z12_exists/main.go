@@ -2,10 +2,8 @@ package main
 
 import (
 	"fmt"
-
-	"github.com/zhangdapeng520/zdpgo_json"
+	"github.com/zhangdapeng520/zdpgo_json/libs/gjson"
 )
-
 
 func main() {
 	const json = `{
@@ -22,15 +20,14 @@ func main() {
 						}
 					]
 				}`
-	
+
 	// 判断是否为json字符串
-	if !zdpgo_json.Valid(json)  {
+	if !gjson.Valid(json) {
 		fmt.Println("json数据格式校验失败")
 	}
 
-
 	// 判断是否存在数据
-	value := zdpgo_json.Get(json, "name.last")
+	value := gjson.Get(json, "name.last")
 	if !value.Exists() {
 		println("no last name")
 	} else {
@@ -38,7 +35,7 @@ func main() {
 	}
 
 	// Or as one step
-	if zdpgo_json.Get(json, "name.last").Exists() {
+	if gjson.Get(json, "name.last").Exists() {
 		println("has a last name")
 	}
 }

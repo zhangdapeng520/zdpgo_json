@@ -16,5 +16,6 @@
 **/mtest*
 **/*.log
 **/*.json
-config
+/config
+/core/config/config
 

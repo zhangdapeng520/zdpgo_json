@@ -1,5 +1,5 @@
-// Package gjson provides searching for json strings.
-package zdpgo_json
+// Package query provides searching for json strings.
+package query
 
 import (
 	"encoding/json"
@@ -641,7 +641,7 @@ func tostr(json string) (raw string, str string) {
 
 // Exists returns true if value exists.
 //
-//  if gjson.Get(json, "name.last").Exists(){
+//  if query.Get(json, "name.last").Exists(){
 //		println("value exists")
 //  }
 func (t Result) Exists() bool {
@@ -2490,10 +2490,10 @@ func validnull(data []byte, i int) (outi int, ok bool) {
 
 // Valid returns true if the input is valid json.
 //
-//  if !gjson.Valid(json) {
+//  if !query.Valid(json) {
 //  	return errors.New("invalid json")
 //  }
-//  value := gjson.Get(json, "name.last")
+//  value := query.Get(json, "name.last")
 //
 func Valid(json string) bool {
 	_, ok := validpayload(stringBytes(json), 0)
@@ -2502,10 +2502,10 @@ func Valid(json string) bool {
 
 // ValidBytes returns true if the input is valid json.
 //
-//  if !gjson.Valid(json) {
+//  if !query.Valid(json) {
 //  	return errors.New("invalid json")
 //  }
-//  value := gjson.Get(json, "name.last")
+//  value := query.Get(json, "name.last")
 //
 // If working with bytes, this method preferred over ValidBytes(string(data))
 //
@@ -2673,7 +2673,7 @@ var modifiers = map[string]func(json, arg string) string{
 
 // AddModifier binds a custom modifier command to the GJSON syntax.
 // This operation is not thread safe and should be executed prior to
-// using all other gjson function.
+// using all other query function.
 func AddModifier(name string, fn func(json, arg string) string) {
 	modifiers[name] = fn
 }

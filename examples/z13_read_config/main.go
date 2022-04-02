@@ -2,7 +2,7 @@ package main
 
 import (
 	"fmt"
-	"github.com/zhangdapeng520/zdpgo_json"
+	"github.com/zhangdapeng520/zdpgo_json/core/config"
 )
 
 type conf struct {
@@ -15,6 +15,6 @@ type conf struct {
 
 func main() {
 	var c conf
-	_ = zdpgo_json.ReadDefaultConfig(&c)
+	_ = config.ReadDefaultConfig(&c)
 	fmt.Println("读取配置：", c.Username, c.Password, c.Host, c.Port, c.Db)
 }

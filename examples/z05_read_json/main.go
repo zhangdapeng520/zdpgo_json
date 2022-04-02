@@ -3,9 +3,8 @@ package main
 import (
 	"encoding/json"
 	"fmt"
+	"github.com/zhangdapeng520/zdpgo_json/core/python"
 	"os"
-
-	"github.com/zhangdapeng520/zdpgo_json"
 )
 
 type Account struct {
@@ -45,7 +44,7 @@ func GoMarshal() {
 func PythonLoad() {
 	filePath := "./examples/z05_read_json/user.json"
 	var user User
-	_ = zdpgo_json.Load(filePath, &user)
+	_ = python.Load(filePath, &user)
 	fmt.Println(user)
 }
 

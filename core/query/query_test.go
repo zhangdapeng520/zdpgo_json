@@ -1,4 +1,4 @@
-package zdpgo_json
+package query
 
 import (
 	"bytes"
@@ -1541,11 +1541,11 @@ func TestDuplicateKeys(t *testing.T) {
 // 		output += fmt.Sprintf("%#v", val)
 // 	}
 // 	expect := strings.Join([]string{
-// 		`gjson.Result{Type:3, Raw:"\"PERSON1\"", Str:"PERSON1", Num:0, ` +
+// 		`query.Result{Type:3, Raw:"\"PERSON1\"", Str:"PERSON1", Num:0, ` +
 // 			`Index:11, Indexes:[]int(nil)}`,
-// 		`gjson.Result{Type:3, Raw:"\"PERSON2\"", Str:"PERSON2", Num:0, ` +
+// 		`query.Result{Type:3, Raw:"\"PERSON2\"", Str:"PERSON2", Num:0, ` +
 // 			`Index:21, Indexes:[]int(nil)}`,
-// 		`gjson.Result{Type:2, Raw:"0", Str:"", Num:0, Index:31, Indexes:[]int(nil)}`,
+// 		`query.Result{Type:2, Raw:"0", Str:"", Num:0, Index:31, Indexes:[]int(nil)}`,
 // 	}, "\n")
 // 	if output != expect {
 // 		t.Fatalf("expected '%v', got '%v'", expect, output)

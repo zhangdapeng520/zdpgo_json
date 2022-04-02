@@ -3,9 +3,8 @@ package main
 import (
 	"encoding/json"
 	"fmt"
+	"github.com/zhangdapeng520/zdpgo_json/core/python"
 	"os"
-
-	"github.com/zhangdapeng520/zdpgo_json"
 )
 
 type Account struct {
@@ -86,7 +85,7 @@ func PythonDump() {
 	// 写json文件
 	// 创建文件
 	filePath := "./examples/z04_write_json/user1.json"
-	_ = zdpgo_json.Dump(filePath, user)
+	_ = python.Dump(filePath, user)
 }
 func main() {
 	GoMarshal()

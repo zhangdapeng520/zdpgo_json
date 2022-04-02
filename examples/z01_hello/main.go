@@ -3,9 +3,8 @@ package main
 import (
 	"encoding/json"
 	"fmt"
+	"github.com/zhangdapeng520/zdpgo_json/core/python"
 	"log"
-
-	"github.com/zhangdapeng520/zdpgo_json"
 )
 
 type Account struct {
@@ -38,7 +37,7 @@ func PythonDumps() {
 		password: "123456",
 		Money:    100.5,
 	}
-	result, _ := zdpgo_json.Dumps(account)
+	result, _ := python.Dumps(account)
 	fmt.Println(result)
 }
 
@@ -56,12 +55,12 @@ func GoUnmarshal() {
 func PythonLoads() {
 	str := "{\"access_token\":\"uAUS6o5g-9rFWjYt39LYa7TKqiMVsIfCGPEN4IZzdAk5-T-ryVhL7xb8kYciuU_m\",\"expires_in\":7200}"
 	var dat map[string]interface{}
-	_ = zdpgo_json.Loads(str, &dat)
+	_ = python.Loads(str, &dat)
 	fmt.Println(dat)
 
 	s := `{"email":"张大鹏","money":100.5}`
 	var account Account
-	_ = zdpgo_json.Loads(s, &account)
+	_ = python.Loads(s, &account)
 	fmt.Println(account, account.Email, account.Money)
 }
 
