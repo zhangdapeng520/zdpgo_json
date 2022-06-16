@@ -8,8 +8,8 @@ import (
 	"unicode/utf8"
 	"unsafe"
 
-	"github.com/zhangdapeng520/zdpgo_json/libs/match"
-	"github.com/zhangdapeng520/zdpgo_json/libs/pretty"
+	"github.com/zhangdapeng520/zdpgo_json/match"
+	"github.com/zhangdapeng520/zdpgo_json/pretty"
 )
 
 // Query 查询核心对象

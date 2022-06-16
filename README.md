@@ -8,9 +8,10 @@
 - 支持json字符串的查询
 
 ## 版本历史
-- 版本0.1.0 2022年2月16日 基本功能
-- 版本0.1.1 2022年3月30日 读取配置
-- 版本0.1.2 2022年4月2日 项目结构优化
+- v0.1.0 2022/02/16 基本功能
+- v0.1.1 2022/03/30 读取配置
+- v0.1.2 2022/04/02 项目结构优化
+- v0.1.3 2022/06/16 优化：读取json字符串优化
 
 ## 使用示例
 
@@ -20,6 +21,7 @@ package main
 
 import (
 	"fmt"
+
 	"github.com/zhangdapeng520/zdpgo_json"
 )
 
@@ -50,16 +52,15 @@ func main() {
 		Account: a,
 	}
 
-	j := zdpgo_json.New()
-
-	// 写入文件
-	err := j.Dump("user.json", u)
+	// 序列化
+	jsonData, err := zdpgo_json.Dumps(u)
 	if err != nil {
 		fmt.Println(err)
 	}
+	fmt.Println(jsonData)
 
-	// 读取文件
-	err = j.Load("user.json", &u)
+	// 反序列化
+	err = zdpgo_json.Loads(jsonData, &u)
 	if err != nil {
 		fmt.Println(err)
 	}
@@ -73,6 +74,7 @@ package main
 
 import (
 	"fmt"
+
 	"github.com/zhangdapeng520/zdpgo_json"
 )
 
@@ -103,17 +105,14 @@ func main() {
 		Account: a,
 	}
 
-	j := zdpgo_json.New()
-
-	// 序列化
-	jsonData, err := j.Dumps(u)
+	// 写入文件
+	err := zdpgo_json.Dump("user.json", u)
 	if err != nil {
 		fmt.Println(err)
 	}
-	fmt.Println(jsonData)
 
-	// 反序列化
-	err = j.Loads(jsonData, &u)
+	// 读取文件
+	err = zdpgo_json.Load("user.json", &u)
 	if err != nil {
 		fmt.Println(err)
 	}
@@ -127,6 +126,7 @@ package main
 
 import (
 	"fmt"
+
 	"github.com/zhangdapeng520/zdpgo_json"
 )
 
@@ -165,6 +165,7 @@ func main() {
 		fmt.Println(err)
 	}
 	fmt.Println(jsonData)
+	fmt.Println("the json string :", jsonData)
 
 	// Get查询
 	money := j.Query.Get(jsonData, "Account.money")

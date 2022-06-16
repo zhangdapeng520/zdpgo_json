@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+
 	"github.com/zhangdapeng520/zdpgo_json"
 )
 
@@ -32,17 +33,14 @@ func main() {
 		Account: a,
 	}
 
-	j := zdpgo_json.New()
-
-	// 序列化
-	jsonData, err := j.Dumps(u)
+	// 写入文件
+	err := zdpgo_json.Dump("user.json", u)
 	if err != nil {
 		fmt.Println(err)
 	}
-	fmt.Println(jsonData)
 
-	// 反序列化
-	err = j.Loads(jsonData, &u)
+	// 读取文件
+	err = zdpgo_json.Load("user.json", &u)
 	if err != nil {
 		fmt.Println(err)
 	}

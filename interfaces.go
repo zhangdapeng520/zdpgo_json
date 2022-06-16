@@ -1,6 +1,6 @@
 package zdpgo_json
 
-import "github.com/zhangdapeng520/zdpgo_json/core/query"
+import "github.com/zhangdapeng520/zdpgo_json/query"
 
 // 接口列表
 
