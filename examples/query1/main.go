@@ -82,4 +82,9 @@ func main() {
 	// 提取commoand
 	command := j.Query.Get(jsonStr, "windows.psh.command")
 	fmt.Println(command.Raw)
+
+	// 提取vultag
+	fmt.Println("=============提取vul tag=======================")
+	vulTagArray := j.Query.Get(jsonStr, "vul_tag").Array()
+	fmt.Println(vulTagArray)
 }

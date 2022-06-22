@@ -1,10 +1,14 @@
 package zdpgo_json
 
 import (
-	"encoding/json"
 	"os"
 
+	"github.com/zhangdapeng520/zdpgo_json/jsoniter"
 	"github.com/zhangdapeng520/zdpgo_json/query"
+)
+
+var (
+	json = jsoniter.ConfigCompatibleWithStandardLibrary
 )
 
 // Json 处理json的核心对象

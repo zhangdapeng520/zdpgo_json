@@ -1,11 +1,9 @@
-package config
-
-import "github.com/zhangdapeng520/zdpgo_json/python"
+package zdpgo_json
 
 // ReadConfig 读取配置，支持同时读取多个
 func ReadConfig(configObj interface{}, configFileList ...string) error {
 	for _, configFile := range configFileList {
-		err := python.Load(configFile, configObj)
+		err := Load(configFile, configObj)
 		if err != nil {
 			return err
 		}

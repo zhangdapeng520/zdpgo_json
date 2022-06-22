@@ -1,4 +1,4 @@
-package config
+package zdpgo_json
 
 import (
 	"fmt"
