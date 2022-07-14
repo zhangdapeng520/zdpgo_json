@@ -1,25 +1,26 @@
 # zdpgo_json
 
-在Golang中便捷从处理Json文件，比如动态配置，增删改查
+在 Golang 中便捷从处理 Json 文件，比如动态配置，增删改查
 
 项目地址：https://github.com/zhangdapeng520/zdpgo_json
 
 ## 功能清单
 
-- 与Python保持一致的API接口，dump对应Dump，load对应Load，dumps对应Dumps，loads对应Loads
-- 支持json字符串的查询
+- 与 Python 保持一致的 API 接口，dump 对应 Dump，load 对应 Load，dumps 对应 Dumps，loads 对应 Loads
+- 支持 json 字符串的查询
 
 ## 版本历史
 
 - v0.1.0 2022/02/16 基本功能
 - v0.1.1 2022/03/30 读取配置
 - v0.1.2 2022/04/02 项目结构优化
-- v0.1.3 2022/06/16 优化：读取json字符串优化
-- v0.1.4 2022/06/22 新增：整合jsoniter，序列化性能极大提升
+- v0.1.3 2022/06/16 优化：读取 json 字符串优化
+- v0.1.4 2022/06/22 新增：整合 jsoniter，序列化性能极大提升
+- v0.1.5 2022/07/14 优化：代码优化
 
 ## 使用示例
 
-### 读写json文件
+### 读写 json 文件
 
 ```go
 package main
@@ -126,7 +127,7 @@ func main() {
 }
 ```
 
-### 从json字符串中查询数据
+### 从 json 字符串中查询数据
 
 ```go
 package main

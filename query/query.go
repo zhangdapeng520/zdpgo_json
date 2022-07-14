@@ -1538,6 +1538,8 @@ func Get(json, path string) Result {
 				return Parse(rjson)
 			}
 		}
+
+		// 查询数组
 		if path[0] == '[' || path[0] == '{' {
 			// using a subselector path
 			kind := path[0]
